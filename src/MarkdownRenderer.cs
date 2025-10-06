@@ -108,18 +108,23 @@ namespace DocExtractor
 
                 var linkText = asCode ? $"`{label}`" : label;
 
+                var ext = configuration.StripExtensionFromLinks ? string.Empty : ".md";
+
                 if (localLink != null)
                 {
+                    if(localLink.StartsWith("./"))
+                    {
+                        localLink = $"{localLink}{ext}";
+                    }
+
                     return $"[{linkText}]({localLink})";
                 }
-
-                var ext = configuration.StripExtensionFromLinks ? string.Empty : ".md";
 
                 return $"[{linkText}]({configuration.PathPrefix}/{symbol.AnchorName}{ext})";
             }
         }
 
-        internal static string GetSymbolTypeLink(string typeName, DefaultDictionary<string, DocumentedSymbol> symbolDict)
+        internal static string GetSymbolTypeLink(string typeName, DefaultDictionary<string, DocumentedSymbol> symbolDict, Configuration configuration)
         {
             string link = null;
 
@@ -129,6 +134,11 @@ namespace DocExtractor
                 {
                     link = $"./{typeName.ToLowerInvariant()}";
                 }
+            }
+
+            if (link == null)
+            {
+                return null;
             }
 
             if (link != null)
@@ -148,21 +158,23 @@ namespace DocExtractor
                 }
             }
 
-            return link;
+            var ext = configuration.StripExtensionFromLinks ? string.Empty : ".md";
+
+            return $"{link}{ext}";
         }
 
-        internal static string GetTypeLinkString(string typeName, DefaultDictionary<string, DocumentedSymbol> symbolDict)
+        internal static string GetTypeLinkString(string typeName, DefaultDictionary<string, DocumentedSymbol> symbolDict, Configuration configuration)
         {
-            var localLink = GetSymbolTypeLink(typeName, symbolDict);
+            var localLink = GetSymbolTypeLink(typeName, symbolDict, configuration);
 
             var text = EscapeMarkdownCharacters(Program.NormalizeTypeName(typeName));
 
             return localLink != null ? $"[{text}]({localLink})" : text;
         }
 
-        internal static string GetTypeLinkString(ISymbol symbol, DefaultDictionary<string, DocumentedSymbol> symbolDict)
+        internal static string GetTypeLinkString(ISymbol symbol, DefaultDictionary<string, DocumentedSymbol> symbolDict, Configuration configuration)
         {
-            return GetTypeLinkString(Program.GetSymbolType(symbol), symbolDict);
+            return GetTypeLinkString(Program.GetSymbolType(symbol), symbolDict, configuration);
         }
 
         internal static string FormatMethodName(ISymbol self, ISymbol parent, DefaultDictionary<string, DocumentedSymbol> symbolDict,
@@ -184,13 +196,13 @@ namespace DocExtractor
             {
                 outValue += $"\\<{string.Join(", ", methodSymbol.TypeArguments.Select(x =>
                 {
-                    return $"{GetTypeLinkString(x.ToDisplayString(NullableFlowState.None), symbolDict)}";
+                    return $"{GetTypeLinkString(x.ToDisplayString(NullableFlowState.None), symbolDict, configuration)}";
                 }))}\\>";
             }
 
             outValue += $"({string.Join(", ", methodSymbol.Parameters.Select(x =>
             {
-                return $"{GetTypeLinkString(x.Type.ToDisplayString(NullableFlowState.None), symbolDict)} {x.Name}";
+                return $"{GetTypeLinkString(x.Type.ToDisplayString(NullableFlowState.None), symbolDict, configuration)} {x.Name}";
             }))})";
 
             return outValue;
@@ -558,11 +570,12 @@ namespace DocExtractor
                                 childSummary = childSummary.Substring(1);
                             }
 
-                            var link = GetMarkdownLink(childSymbol, configuration, (configuration.OutputMemberFiles ? "./" : "#") + childSymbol.AnchorName);
+                            var link = GetMarkdownLink(childSymbol, configuration, (configuration.OutputMemberFiles ? "./" : "#") +
+                                childSymbol.AnchorName);
 
                             if(shouldHaveType)
                             {
-                                var typeString = GetTypeLinkString(childSymbol.Symbol, symbolDict);
+                                var typeString = GetTypeLinkString(childSymbol.Symbol, symbolDict, configuration);
 
                                 stringBuilder.AppendLine($"|{typeString}" +
                                     $"|{link}|{EscapeMarkdown(childSummary)}|");
@@ -634,7 +647,7 @@ namespace DocExtractor
 
                             var childDocs = XElement.Parse(childSymbol.DocumentationXml);
 
-                            var localTypeName = GetTypeLinkString(childSymbol.Symbol, symbolDict);
+                            var localTypeName = GetTypeLinkString(childSymbol.Symbol, symbolDict, configuration);
 
                             var shouldHaveType = groupName.ToUpperInvariant() != "CONSTRUCTORS";
 
