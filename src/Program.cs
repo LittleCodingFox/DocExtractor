@@ -1,22 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Xml;
-using System.Xml.Linq;
-using Microsoft.Build.Locator;
+﻿using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.MSBuild;
+using System;
+using System.Collections.Generic;
 using System.CommandLine;
-
-using ISymbol = Microsoft.CodeAnalysis.ISymbol;
 using System.CommandLine.Invocation;
-
+using System.IO;
+using System.Linq;
+using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Xml;
+using System.Xml.Linq;
+using ISymbol = Microsoft.CodeAnalysis.ISymbol;
 
 namespace DocExtractor
 {
@@ -490,7 +489,7 @@ namespace DocExtractor
                             .WithMembers(emptyMemberList)
                             .WithAttributeLists(emptyAttributeList)
                             .WithOpenBraceToken(missingOpenBrace)
-                            .WithCloseBraceToken(missingCloseBrace); ;
+                            .WithCloseBraceToken(missingCloseBrace);
                         break;
                     case NamespaceDeclarationSyntax @namespace:
                         name = @namespace.Name.ToString();
@@ -796,7 +795,8 @@ namespace DocExtractor
 
             return node is ClassDeclarationSyntax ||
                 node is StructDeclarationSyntax ||
-                node is EnumDeclarationSyntax;
+                node is EnumDeclarationSyntax ||
+                node is InterfaceDeclarationSyntax;
         }
 
         public static string GetSymbolType(ISymbol symbol)

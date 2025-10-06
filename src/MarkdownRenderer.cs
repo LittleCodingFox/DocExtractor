@@ -368,7 +368,7 @@ namespace DocExtractor
                     stringBuilder.AppendLine("# " + title);
                 }
 
-                var typeName = HTMLRenderer.GetTypeName(symbol);
+                HTMLRenderer.GetTypeName(symbol, false, out var typeName);
 
                 if (configuration.OutputMemberFiles && symbol.Syntax is not NamespaceDeclarationSyntax)
                 {
@@ -533,8 +533,8 @@ namespace DocExtractor
 
                 var children = symbolDict
                     .Values
-                    .Where(s => s.ContainerID == symbol.DocumentationID)
-                    .GroupBy(s => HTMLRenderer.GetTypeName(s, plural: true));
+                    .Where(s => s.ContainerID == symbol.DocumentationID && HTMLRenderer.GetTypeName(s, plural: true, out _))
+                    .GroupBy(s => HTMLRenderer.GetTypeName(s, plural: true, out var typeName) ? typeName : "INVALID");
 
                 if (children.Any())
                 {
@@ -636,7 +636,7 @@ namespace DocExtractor
                     {
                         string groupName = group.Key;
 
-                        stringBuilder.AppendLine($"## <a id='{groupName}-detail' /> {groupName}");
+                        stringBuilder.AppendLine($"## <a id='{groupName}-detail'> {groupName} </a>");
                         stringBuilder.AppendLine();
 
                         var groupChildren = group.OrderBy(s => s.DocumentationID).ToArray();
@@ -661,16 +661,16 @@ namespace DocExtractor
                                 case "CONSTRUCTORS":
                                 case "METHODS":
 
-                                    stringBuilder.AppendLine($"### <a id='{childSymbol.AnchorName}'/>{localTypeName} " +
-                                        FormatMethodName(childSymbol.Symbol, symbol.Symbol, symbolDict, configuration)
+                                    stringBuilder.AppendLine($"### <a id='{childSymbol.AnchorName}'>{localTypeName} " +
+                                        FormatMethodName(childSymbol.Symbol, symbol.Symbol, symbolDict, configuration) + "</a>"
                                     );
 
                                     break;
 
                                 default:
 
-                                    stringBuilder.AppendLine($"### <a id='{childSymbol.AnchorName}'/>{localTypeName} " +
-                                        EscapeMarkdownCharacters(childSymbol.Symbol.Name));
+                                    stringBuilder.AppendLine($"### <a id='{childSymbol.AnchorName}'>{localTypeName} " +
+                                        EscapeMarkdownCharacters(childSymbol.Symbol.Name) + "</a>");
 
                                     break;
                             }

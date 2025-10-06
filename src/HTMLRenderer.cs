@@ -97,14 +97,11 @@ namespace DocExtractor
 
             var outputMemberElements = new List<XElement>();
 
-            string typeLabel = GetTypeName(member);
-
-            if (typeLabel != null)
+            if (GetTypeName(member, false, out var typeLabel))
             {
                 typeElem.Add(new XElement("p",
                     new XAttribute("class", "typeKind"),
-                    typeLabel
-                    ));
+                    typeLabel));
             }
 
             if (member.BaseTypeID != null)
@@ -238,53 +235,82 @@ namespace DocExtractor
             return typeElem;
         }
 
-        public static string GetTypeName(DocumentedSymbol member, bool plural = false)
+        public static bool GetTypeName(DocumentedSymbol member, bool plural, out string typeName)
         {
             switch (member.Syntax)
             {
                 case ClassDeclarationSyntax:
                     if (member.BaseTypeID?.Substring(1).Equals(":System.Attribute") ?? false) {
                         // This is an attribute!
-                        return plural ? "Attributes" : "Attribute";
+                        typeName = plural ? "Attributes" : "Attribute";
+
+                        return true;
+
                     } else {
-                        return plural ? "Classes" : "Class";
+                        typeName = plural ? "Classes" : "Class";
+
+                        return true;
                     }
 
                 case InterfaceDeclarationSyntax:
-                    return plural ? "Interfaces" : "Interface";
+                    typeName = plural ? "Interfaces" : "Interface";
+
+                    return true;
 
                 case EnumDeclarationSyntax:
-                    return plural ? "Enums" : "Enum";
+                    typeName = plural ? "Enums" : "Enum";
+
+                    return true;
 
                 case EnumMemberDeclarationSyntax:
-                    return plural ? "Members" : "Enumeration Member";
+                    typeName = plural ? "Members" : "Enumeration Member";
+
+                    return true;
 
                 case StructDeclarationSyntax:
-                    return plural ? "Structs" : "Struct";
+                    typeName = plural ? "Structs" : "Struct";
+
+                    return true;
 
                 case MethodDeclarationSyntax:
-                    return plural ? "Methods" : "Method";
+                    typeName = plural ? "Methods" : "Method";
+
+                    return true;
 
                 case IndexerDeclarationSyntax:
-                    return plural ? "Indexers" : "Indexer";
+                    typeName = plural ? "Indexers" : "Indexer";
+
+                    return true;
 
                 case FieldDeclarationSyntax:
-                    return plural ? "Fields" : "Field";
+                    typeName = plural ? "Fields" : "Field";
+
+                    return true;
 
                 case PropertyDeclarationSyntax:
-                    return plural ? "Properties" : "Property";
+                    typeName = plural ? "Properties" : "Property";
+
+                    return true;
 
                 case ConstructorDeclarationSyntax:
-                    return plural ? "Constructors" : "Constructor";
+                    typeName = plural ? "Constructors" : "Constructor";
+
+                    return true;
 
                 case DelegateDeclarationSyntax:
-                    return plural ? "Delegates" : "Delegate";
+                    typeName = plural ? "Delegates" : "Delegate";
+
+                    return true;
 
                 case NamespaceDeclarationSyntax:
-                    return plural ? "Namespaces" : "Namespace";
+                    typeName = plural ? "Namespaces" : "Namespace";
+
+                    return true;
 
                 default:
-                    return plural ? "TYPENAME_UNKNOWN_PLURAL" : "TYPENAME_UNKNOWN";
+                    typeName = null;
+
+                    return false;
             }
         }
 
